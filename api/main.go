@@ -15,9 +15,9 @@ func welcome(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte("<html><title>api data</title><h1>api runing</h1></html>"))
 }
 
-// func init() {
-// 	gin.SetMode(gin.ReleaseMode)
-// }
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
 
 func main() {
 	config.Envload()
