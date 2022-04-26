@@ -9,4 +9,6 @@ import (
 func Expenseroute(rg *gin.RouterGroup) {
 	app := rg.Group("/expense")
 	app.GET("/allexpense", routes.Getexpenses)
+	app.GET("/:person", routes.ExpensesByPerson)
+	app.POST("/addexpense", routes.AddExpenses)
 }
