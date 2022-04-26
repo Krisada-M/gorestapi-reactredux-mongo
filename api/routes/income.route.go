@@ -24,7 +24,7 @@ func GetIncome(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var income bson.M
+	var income []bson.M
 	result, err := incomeCollection.Find(ctx, bson.M{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -65,7 +65,7 @@ func AddIncome(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
-	var income model.Incomemodel
+	var income model.IncExpmodel
 
 	if err := c.BindJSON(&income); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -74,10 +74,10 @@ func AddIncome(c *gin.Context) {
 	}
 	income.ID = primitive.NewObjectID()
 	income.Category = "รายรับ"
-	income.Day = config.Day
-	income.Month = config.Month
-	income.Year = config.Year
-	income.Time = config.Time
+	income.Date.Day = config.Day
+	income.Date.Month = config.Month
+	income.Date.Year = config.Year
+	income.Date.Time = config.Time
 
 	validationErr := incvalidate.Struct(income)
 	if validationErr != nil {
@@ -95,4 +95,96 @@ func AddIncome(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": income})
+}
+
+func UpdateIncome(c *gin.Context) {
+	incomeid := c.Param("id")
+	mid, _ := primitive.ObjectIDFromHex(incomeid)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+
+	var income model.IncExpmodel
+
+	if err := c.BindJSON(&income); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+
+	result, err := incomeCollection.UpdateOne(ctx, bson.M{"_id": mid},
+		bson.D{bson.E{Key: "$set", Value: bson.D{
+			bson.E{Key: "productname", Value: income.Productname},
+			bson.E{Key: "purchase", Value: income.Purchase},
+		}}})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, result.ModifiedCount)
+}
+
+func UpdateAllIncome(c *gin.Context) {
+	incomeid := c.Param("id")
+	mid, _ := primitive.ObjectIDFromHex(incomeid)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+
+	var income model.IncExpmodel
+
+	if err := c.BindJSON(&income); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+
+	validationErr := incvalidate.Struct(income)
+	if validationErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+		fmt.Println(validationErr)
+		return
+	}
+
+	result, err := incomeCollection.ReplaceOne(ctx, bson.M{"_id": mid},
+		bson.M{
+			"category":    "รายรับ",
+			"person":      income.Person,
+			"productname": income.Productname,
+			"purchase":    income.Purchase,
+			"date": bson.M{
+				"day":   config.Day,
+				"month": config.Month,
+				"year":  config.Year,
+				"time":  config.Time,
+			},
+		},
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, result.ModifiedCount)
+}
+
+func DeleteIncome(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+
+	incomeid := c.Param("id")
+	mid, _ := primitive.ObjectIDFromHex(incomeid)
+	result, err := incomeCollection.DeleteOne(ctx, bson.M{"_id": mid})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+	c.JSON(http.StatusOK, result.DeletedCount)
 }

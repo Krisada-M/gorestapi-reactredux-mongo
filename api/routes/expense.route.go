@@ -67,7 +67,7 @@ func AddExpenses(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
-	var expense model.Expensemodel
+	var expense model.IncExpmodel
 
 	if err := c.BindJSON(&expense); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -76,10 +76,10 @@ func AddExpenses(c *gin.Context) {
 	}
 	expense.ID = primitive.NewObjectID()
 	expense.Category = "รายจ่าย"
-	expense.Day = config.Day
-	expense.Month = config.Month
-	expense.Year = config.Year
-	expense.Time = config.Time
+	expense.Date.Day = config.Day
+	expense.Date.Month = config.Month
+	expense.Date.Year = config.Year
+	expense.Date.Time = config.Time
 
 	validationErr := expvalidate.Struct(expense)
 	if validationErr != nil {
@@ -97,4 +97,96 @@ func AddExpenses(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": expense})
+}
+
+func UpdateExpenses(c *gin.Context) {
+	expenseid := c.Param("id")
+	mid, _ := primitive.ObjectIDFromHex(expenseid)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+
+	var expense model.IncExpmodel
+
+	if err := c.BindJSON(&expense); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+
+	result, err := expenseCollection.UpdateOne(ctx, bson.M{"_id": mid},
+		bson.D{bson.E{Key: "$set", Value: bson.D{
+			bson.E{Key: "productname", Value: expense.Productname},
+			bson.E{Key: "purchase", Value: expense.Purchase},
+		}}})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, result.ModifiedCount)
+}
+
+func UpdateAllExpenses(c *gin.Context) {
+	expenseid := c.Param("id")
+	mid, _ := primitive.ObjectIDFromHex(expenseid)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+
+	var expense model.IncExpmodel
+
+	if err := c.BindJSON(&expense); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+
+	validationErr := incvalidate.Struct(expense)
+	if validationErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+		fmt.Println(validationErr)
+		return
+	}
+
+	result, err := expenseCollection.ReplaceOne(ctx, bson.M{"_id": mid},
+		bson.M{
+			"category":    "รายรับ",
+			"person":      expense.Person,
+			"productname": expense.Productname,
+			"purchase":    expense.Purchase,
+			"date": bson.M{
+				"day":   config.Day,
+				"month": config.Month,
+				"year":  config.Year,
+				"time":  config.Time,
+			},
+		},
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, result.ModifiedCount)
+}
+
+func DeleteExpenses(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+
+	expenseid := c.Param("id")
+	mid, _ := primitive.ObjectIDFromHex(expenseid)
+	result, err := expenseCollection.DeleteOne(ctx, bson.M{"_id": mid})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+	c.JSON(http.StatusOK, result.DeletedCount)
 }
