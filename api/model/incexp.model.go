@@ -3,7 +3,7 @@ package model
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type IncExpmodel struct {
-	ID          primitive.ObjectID `bson:"_id"`
+	ID          primitive.ObjectID `json:"id" bson:"_id"`
 	Category    string             `json:"category"`
 	Person      *string            `json:"person"`
 	Productname *string            `json:"productname"`

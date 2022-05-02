@@ -1,0 +1,30 @@
+@import "../../config/Theme.scss";
+
+div.area {
+    width: 100%;
+    @include center;
+    div.navbar {
+        background-color: $tcolor1;
+        width: 100%;
+        height: 100%;
+        .head {
+            margin: 30px 10px;
+            h2 {
+                color: $bcolor1;
+            }
+            h2:hover {
+                color: $bcolor3;
+            }
+        }
+        .content {
+            margin: 50px 0 0 20px;
+            h4 {
+                margin: 20px 0;
+                color: $bcolor1;
+            }
+            h4:hover {
+                color: $bcolor3;
+            }
+        }
+    }
+}

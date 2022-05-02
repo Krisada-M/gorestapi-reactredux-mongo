@@ -1,0 +1,28 @@
+@import url("https://fonts.googleapis.com/css2?family=Prompt:wght@100;200;300;400&display=swap");
+
+//Base Font
+$font: "Prompt", sans-serif;
+
+// Base Color
+$bcolor1: #111315;
+$bcolor2: #212529;
+$bcolor3: #26272e;
+$bcolor4: #f5f5f5;
+$bcolor5: #ffffff;
+
+//color
+$tcolor1: #3174de;
+$tcolor2: #543cde;
+$tcolor3: #de8647;
+$tcolor4: #26cdde;
+$tcolor5: #ff0000;
+
+//weight & height 100%
+$wfull: 100%;
+$hfull: 100vh;
+
+@mixin center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
